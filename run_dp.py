@@ -753,7 +753,7 @@ def main():
     )
 
     # Required parameters
-    parser.add_argument("--data_dir", default='/data', type=str,
+    parser.add_argument("--data_dir", default='data', type=str,
         help="The input data dir. Should contain the .tsv files (or other data files) for the task.",
     )
     parser.add_argument("--model_type", default='dpbert', type=str,
