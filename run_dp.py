@@ -753,41 +753,21 @@ def main():
     )
 
     # Required parameters
-    parser.add_argument(
-        "--data_dir",
-        default='/data',
-        type=str,
-        required=True,
+    parser.add_argument("--data_dir", default='/data', type=str,
         help="The input data dir. Should contain the .tsv files (or other data files) for the task.",
     )
-    parser.add_argument(
-        "--model_type",
-        default='dpbert',
-        type=str,
-        required=True,
+    parser.add_argument("--model_type", default='dpbert', type=str,
         help="Model type selected in the list: " + ", ".join(
             MODEL_CLASSES.keys()),
     )
-    parser.add_argument(
-        "--model_name_or_path",
-        default='bert-base-cased',
-        type=str,
-        required=True,
+    parser.add_argument("--model_name_or_path", default='bert-base-cased', type=str,
         help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
             ALL_MODELS),
     )
-    parser.add_argument(
-        "--task_name",
-        default='ag',
-        type=str,
-        required=True,
+    parser.add_argument("--task_name", default='ag', type=str,
         help="The name of the task to train selected in the list: ",
     )
-    parser.add_argument(
-        "--output_dir",
-        default='/ag',
-        type=str,
-        required=True,
+    parser.add_argument("--output_dir", default='/ag', type=str,
         help="The output directory where the model predictions and checkpoints will be written.",
     )
 
