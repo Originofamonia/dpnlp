@@ -1,4 +1,3 @@
-
 # Credit for The HuggingFace Inc. team.
 
 import argparse
@@ -51,15 +50,14 @@ from transformers import (
 from transformers import glue_compute_metrics as compute_metrics
 from data_utils import get_processors, convert_examples_to_features
 
-from utils import disarrange, calibrateAnalyticGaussianMechanism, generate_RP, laplace, simple_accuracy
+from utils import disarrange, calibrateAnalyticGaussianMechanism, generate_RP, \
+    laplace, simple_accuracy
 from model import BertForSequenceClassificationWithDP, Attackers
-
 
 try:
     from torch.utils.tensorboard import SummaryWriter
 except ImportError:
     from tensorboardX import SummaryWriter
-
 
 logger = logging.getLogger(__name__)
 
@@ -67,15 +65,15 @@ ALL_MODELS = sum(
     (
         tuple(BERT_PRETRAINED_CONFIG_ARCHIVE_MAP.keys())
         for conf in (
-            BertConfig,
-            XLNetConfig,
-            XLMConfig,
-            RobertaConfig,
-            DistilBertConfig,
-            AlbertConfig,
-            XLMRobertaConfig,
-            FlaubertConfig,
-        )
+        BertConfig,
+        XLNetConfig,
+        XLMConfig,
+        RobertaConfig,
+        DistilBertConfig,
+        AlbertConfig,
+        XLMRobertaConfig,
+        FlaubertConfig,
+    )
     ),
     (),
 )
@@ -86,14 +84,16 @@ MODEL_CLASSES = {
     "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
     "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
     "roberta":
-    (RobertaConfig, RobertaForSequenceClassification, RobertaTokenizer),
+        (RobertaConfig, RobertaForSequenceClassification, RobertaTokenizer),
     "distilbert": (
-    DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
+        DistilBertConfig, DistilBertForSequenceClassification,
+        DistilBertTokenizer),
     "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
     "xlmroberta": (
-    XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+        XLMRobertaConfig, XLMRobertaForSequenceClassification,
+        XLMRobertaTokenizer),
     "flaubert": (
-    FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
+        FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
 }
 
 
@@ -120,7 +120,7 @@ def train(args, train_dataset, model, tokenizer, config):
     if args.max_steps > 0:
         t_total = args.max_steps
         args.num_train_epochs = args.max_steps // (
-                    len(train_dataloader) // args.gradient_accumulation_steps) + 1
+                len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(
             train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
@@ -149,7 +149,7 @@ def train(args, train_dataset, model, tokenizer, config):
     # Check if saved optimizer or scheduler states exist
     if os.path.isfile(os.path.join(args.model_name_or_path,
                                    "optimizer.pt")) and os.path.isfile(
-            os.path.join(args.model_name_or_path, "scheduler.pt")
+        os.path.join(args.model_name_or_path, "scheduler.pt")
     ):
         # Load in optimizer and scheduler states
         optimizer.load_state_dict(
@@ -201,9 +201,9 @@ def train(args, train_dataset, model, tokenizer, config):
         # set global_step to gobal_step of last saved checkpoint from model path
         global_step = int(args.model_name_or_path.split("-")[-1].split("/")[0])
         epochs_trained = global_step // (
-                    len(train_dataloader) // args.gradient_accumulation_steps)
+                len(train_dataloader) // args.gradient_accumulation_steps)
         steps_trained_in_current_epoch = global_step % (
-                    len(train_dataloader) // args.gradient_accumulation_steps)
+                len(train_dataloader) // args.gradient_accumulation_steps)
 
         logger.info(
             "  Continuing training from checkpoint, will skip to saved global_step")
@@ -368,7 +368,7 @@ def attack(args, train_dataset, model, tokenizer, config):
     if args.max_steps > 0:
         t_total = args.max_steps
         args.num_train_epochs = args.max_steps // (
-                    len(train_dataloader) // args.gradient_accumulation_steps) + 1
+                len(train_dataloader) // args.gradient_accumulation_steps) + 1
     else:
         t_total = len(
             train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
@@ -534,10 +534,11 @@ def fair_accuracy(preds, labels, flag):
 def evaluate(args, model, attacker, processor, tokenizer, config, prefix=""):
     # Loop to handle MNLI double evaluation (matched, mis-matched)
     eval_task_names = ("mnli", "mnli-mm") if args.task_name == "mnli" else (
-    args.task_name,)
+        args.task_name,)
     eval_outputs_dirs = (
-    args.output_dir, args.output_dir + "-MM") if args.task_name == "mnli" else (
-    args.output_dir,)
+        args.output_dir,
+        args.output_dir + "-MM") if args.task_name == "mnli" else (
+        args.output_dir,)
 
     if args.laplace == 1:
         lap_sigma = laplace(args.epsilon, 1)
@@ -731,70 +732,49 @@ def main():
     parser = argparse.ArgumentParser()
 
     # Noise parameters
-    parser.add_argument(
-        "--epsilon",
-        default=0.5,
-        type=float,
-        help="DP epsilon",
-    )
+    parser.add_argument("--epsilon", default=0.5, type=float,
+                        help="DP epsilon", )
 
-    parser.add_argument(
-        "--laplace",
-        default=1,
-        type=int,
-        help="1: laplace, 0: Gaussian",
-    )
+    parser.add_argument("--laplace", default=1, type=int,
+                        help="1: laplace, 0: Gaussian", )
 
-    parser.add_argument(
-        "--nullification-rate",
-        default=-1,
-        type=float,
-        help="nullification rate",
-    )
+    parser.add_argument("--nullification-rate", default=-1, type=float,
+                        help="nullification rate", )
 
     # Required parameters
     parser.add_argument("--data_dir", default='data', type=str,
-        help="The input data dir. Should contain the .tsv files (or other data files) for the task.",
-    )
+                        help="The input data dir. Should contain the .tsv files (or other data files) for the task.",
+                        )
     parser.add_argument("--model_type", default='dpbert', type=str,
-        help="Model type selected in the list: " + ", ".join(
-            MODEL_CLASSES.keys()),
-    )
-    parser.add_argument("--model_name_or_path", default='bert-base-cased', type=str,
-        help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
-            ALL_MODELS),
-    )
-    parser.add_argument("--task_name", default='tp', type=str,
-        help="The name of the task to train selected in the list: ",
-    )
-    parser.add_argument("--output_dir", default='tp', type=str,
-        help="The output directory where the model predictions and checkpoints will be written.",
-    )
+                        help="Model type selected in the list: " + ", ".join(
+                            MODEL_CLASSES.keys()),
+                        )
+    parser.add_argument("--model_name_or_path", default='bert-base-cased',
+                        type=str,
+                        help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
+                            ALL_MODELS),
+                        )
+    parser.add_argument("--task_name", default='ag', type=str,
+                        help="The name of the task to train selected in the list: ",
+                        )
+    parser.add_argument("--output_dir", default='ag', type=str,
+                        help="The output directory where the model predictions and checkpoints will be written.",
+                        )
 
     # Other parameters
-    parser.add_argument(
-        "--config_name", default="", type=str,
-        help="Pretrained config name or path if not the same as model_name",
-    )
-    parser.add_argument(
-        "--tokenizer_name",
-        default="",
-        type=str,
-        help="Pretrained tokenizer name or path if not the same as model_name",
-    )
-    parser.add_argument(
-        "--cache_dir",
-        default="",
-        type=str,
-        help="Where do you want to store the pre-trained models downloaded from s3",
-    )
-    parser.add_argument(
-        "--max_seq_length",
-        default=128,
-        type=int,
-        help="The maximum total input sequence length after tokenization. Sequences longer "
-             "than this will be truncated, sequences shorter will be padded.",
-    )
+    parser.add_argument("--config_name", default="", type=str,
+                        help="Pretrained config name or path if not the same as model_name",
+                        )
+    parser.add_argument("--tokenizer_name", default="", type=str,
+                        help="Pretrained tokenizer name or path if not the same as model_name",
+                        )
+    parser.add_argument("--cache_dir", default="", type=str,
+                        help="Where do you want to store the pre-trained models downloaded from s3",
+                        )
+    parser.add_argument("--max_seq_length", default=128, type=int,
+                        help="The maximum total input sequence length after tokenization. Sequences longer "
+                             "than this will be truncated, sequences shorter will be padded.",
+                        )
     parser.add_argument("--do_train", action="store_true", default=True,
                         help="Whether to run training.")
     parser.add_argument("--do_eval", action="store_true", default=True,
@@ -834,10 +814,7 @@ def main():
         "--num_train_epochs", default=3.0, type=float,
         help="Total number of training epochs to perform.",
     )
-    parser.add_argument(
-        "--max_steps",
-        default=-1,
-        type=int,
+    parser.add_argument("--max_steps", default=-1, type=int,
         help="If > 0: set total number of training steps to perform. Override num_train_epochs.",
     )
     parser.add_argument("--warmup_steps", default=0, type=int,
