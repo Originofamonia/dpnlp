@@ -25,6 +25,7 @@ from transformers import (
     AlbertForSequenceClassification,
     AlbertTokenizer,
     BertConfig,
+    BERT_PRETRAINED_CONFIG_ARCHIVE_MAP,
     BertForSequenceClassification,
     BertTokenizer,
     DistilBertConfig,
@@ -64,7 +65,7 @@ logger = logging.getLogger(__name__)
 
 ALL_MODELS = sum(
     (
-        tuple(conf.pretrained_config_archive_map.keys())
+        tuple(BERT_PRETRAINED_CONFIG_ARCHIVE_MAP.keys())
         for conf in (
             BertConfig,
             XLNetConfig,
