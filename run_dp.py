@@ -755,7 +755,7 @@ def main():
     # Required parameters
     parser.add_argument(
         "--data_dir",
-        default='data',
+        default='/data',
         type=str,
         required=True,
         help="The input data dir. Should contain the .tsv files (or other data files) for the task.",
@@ -785,7 +785,7 @@ def main():
     )
     parser.add_argument(
         "--output_dir",
-        default='ag',
+        default='/ag',
         type=str,
         required=True,
         help="The output directory where the model predictions and checkpoints will be written.",
