@@ -754,7 +754,7 @@ def main():
                         help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
                             ALL_MODELS),
                         )
-    parser.add_argument("--task_name", default='blog', type=str,
+    parser.add_argument("--task_name", default='bl', type=str,
                         help="The name of the task to train selected in the list: ",
                         )
     parser.add_argument("--output_dir", default='blog', type=str,
