@@ -1,8 +1,4 @@
-#!/usr/bin/python
-#-*-coding:utf-8 -*-
-#Author   : Zodiac
-#Version  : 1.0
-#Filename : model.py
+# Filename : model.py
 from __future__ import print_function
 
 import torch
@@ -10,6 +6,7 @@ from torch import nn
 
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers import BertForSequenceClassification, BertModel
+
 
 class BertForSequenceClassificationWithDP(BertForSequenceClassification):
     def __init__(self, config):
@@ -19,22 +16,23 @@ class BertForSequenceClassificationWithDP(BertForSequenceClassification):
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, self.config.num_labels)
-        #self.classifier_proj = nn.Linear(config.projected_dim, self.config.num_labels)
+        # self.classifier_proj = nn.Linear(config.projected_dim, self.config.num_labels)
 
         self.init_weights()
+
     def forward(
-        self,
-        input_ids=None,
-        attention_mask=None,
-        token_type_ids=None,
-        position_ids=None,
-        head_mask=None,
-        inputs_embeds=None,
-        labels=None,
-        NU=None,
-        dp_opts=None,
-        noise=None,
-        projection_matrix=None,
+            self,
+            input_ids=None,
+            attention_mask=None,
+            token_type_ids=None,
+            position_ids=None,
+            head_mask=None,
+            inputs_embeds=None,
+            labels=None,
+            NU=None,
+            dp_opts=None,
+            noise=None,
+            projection_matrix=None,
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`, defaults to :obj:`None`):
@@ -79,7 +77,7 @@ class BertForSequenceClassificationWithDP(BertForSequenceClassification):
 
         outputs = self.bert(
             input_ids,
-            attention_mask=attention_mask*NU,
+            attention_mask=attention_mask * NU,
             token_type_ids=token_type_ids,
             position_ids=position_ids,
             head_mask=head_mask,
@@ -92,13 +90,15 @@ class BertForSequenceClassificationWithDP(BertForSequenceClassification):
         pooled_output = self.dropout(pooled_output)
         pooled_output_min = torch.min(pooled_output, dim=-1, keepdims=True)[0]
         pooled_output_max = torch.max(pooled_output, dim=-1, keepdims=True)[0]
-        pooled_output = (pooled_output - pooled_output_min) / (pooled_output_max - pooled_output_min)
+        pooled_output = (pooled_output - pooled_output_min) / (
+                    pooled_output_max - pooled_output_min)
         pooled_output += noise.view(-1, 1)
 
         logits = self.classifier(pooled_output)
-        outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
-        
-        outputs = (logits, pooled_output) + outputs[2:]  # add hidden states and attention if they are here
+        # add hidden states and attention if they are here
+        outputs = (logits,) + outputs[2:]
+        # add hidden states and attention if they are here
+        outputs = (logits, pooled_output) + outputs[2:]
 
         if labels is not None:
             if self.num_labels == 1:
@@ -107,7 +107,8 @@ class BertForSequenceClassificationWithDP(BertForSequenceClassification):
                 loss = loss_fct(logits.view(-1), labels.view(-1))
             else:
                 loss_fct = CrossEntropyLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                loss = loss_fct(logits.view(-1, self.num_labels),
+                                labels.view(-1))
             outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)
@@ -129,16 +130,17 @@ class Attackers(nn.Module):
     def __init__(self, repr_dim, n_attack, hiddens=256, n_classes=2):
         super().__init__()
 
-        self.attackers = nn.ModuleList([Attacker(repr_dim, hiddens, n_classes) for _ in range(n_attack)])
+        self.attackers = nn.ModuleList(
+            [Attacker(repr_dim, hiddens, n_classes) for _ in range(n_attack)])
 
         self.xentropy = nn.CrossEntropyLoss()
 
-    def forward(self, input, outputs):
+    def forward(self, inputs, outputs):
         loss = 0.
         preds = []
 
         for i, output in enumerate(outputs):
-            logits = self.attackers[i](input)
+            logits = self.attackers[i](inputs)
             preds.append(torch.argmax(logits, dim=-1))
             loss += self.xentropy(logits, output)
 

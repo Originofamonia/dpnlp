@@ -184,7 +184,7 @@ def train(args, train_dataset, model, tokenizer, config):
     logger.info("  Instantaneous batch size per GPU = %d",
                 args.per_gpu_train_batch_size)
     logger.info(
-        "  Total train batch size (w. parallel, distributed & accumulation) = %d",
+        "Total train batch size (w. parallel, distributed & accumulation) = %d",
         args.train_batch_size
         * args.gradient_accumulation_steps
         * (torch.distributed.get_world_size() if args.local_rank != -1 else 1),
@@ -218,7 +218,7 @@ def train(args, train_dataset, model, tokenizer, config):
         epochs_trained, int(args.num_train_epochs), desc="Epoch",
         disable=args.local_rank not in [-1, 0],
     )
-    set_seed(args)  # Added here for reproductibility
+    set_seed(args)  # Added here for reproducibility
 
     if args.laplace == 1:
         lap_sigma = laplace(args.epsilon, 1)
@@ -252,7 +252,7 @@ def train(args, train_dataset, model, tokenizer, config):
             else:
                 noise = torch.normal(0, gaussian_sigma,
                                      [inputs["input_ids"].shape[0]])
-
+            # word dropout
             nullify = (torch.rand_like(inputs[
                                            "attention_mask"].float()) > args.nullification_rate).long()
 
@@ -267,11 +267,11 @@ def train(args, train_dataset, model, tokenizer, config):
                 )  # XLM, DistilBERT, RoBERTa, and XLM-RoBERTa don't use segment_ids
 
             outputs = model(**inputs)
-            loss = outputs[
-                0]  # model outputs are always tuple in transformers (see doc)
+            # model outputs are always tuple in transformers (see doc)
+            loss = outputs[0]
 
-            if args.n_gpu > 1:
-                loss = loss.mean()  # mean() to average on multi-gpu parallel training
+            if args.n_gpu > 1:  # mean() to average on multi-gpu parallel training
+                loss = loss.mean()
             if args.gradient_accumulation_steps > 1:
                 loss = loss / args.gradient_accumulation_steps
 
@@ -341,10 +341,10 @@ def train(args, train_dataset, model, tokenizer, config):
                     logger.info("Saving optimizer and scheduler states to %s",
                                 output_dir)
 
-            if args.max_steps > 0 and global_step > args.max_steps:
+            if 0 < args.max_steps < global_step:
                 epoch_iterator.close()
                 break
-        if args.max_steps > 0 and global_step > args.max_steps:
+        if 0 < args.max_steps < global_step:
             train_iterator.close()
             break
 
@@ -413,7 +413,7 @@ def attack(args, train_dataset, model, tokenizer, config):
     logger.info("  Instantaneous batch size per GPU = %d",
                 args.per_gpu_train_batch_size)
     logger.info(
-        "  Total train batch size (w. parallel, distributed & accumulation) = %d",
+        "Total train batch size (w. parallel, distributed & accumulation) = %d",
         args.train_batch_size
         * args.gradient_accumulation_steps
         * (torch.distributed.get_world_size() if args.local_rank != -1 else 1),
@@ -432,7 +432,7 @@ def attack(args, train_dataset, model, tokenizer, config):
         epochs_trained, int(args.num_train_epochs), desc="Epoch",
         disable=args.local_rank not in [-1, 0],
     )
-    set_seed(args)  # Added here for reproductibility
+    set_seed(args)  # Added here for reproducibility
 
     model.eval()
 
@@ -490,8 +490,8 @@ def attack(args, train_dataset, model, tokenizer, config):
 
             loss = attacker(noisy_repr, att_outputs)[0]
 
-            if args.n_gpu > 1:
-                loss = loss.mean()  # mean() to average on multi-gpu parallel training
+            if args.n_gpu > 1:  # mean() to average on multi-gpu parallel training
+                loss = loss.mean()
             if args.gradient_accumulation_steps > 1:
                 loss = loss / args.gradient_accumulation_steps
 
@@ -514,10 +514,10 @@ def attack(args, train_dataset, model, tokenizer, config):
                 attacker.zero_grad()
                 global_step += 1
 
-            if args.max_steps > 0 and global_step > args.max_steps:
+            if 0 < args.max_steps < global_step:
                 epoch_iterator.close()
                 break
-        if args.max_steps > 0 and global_step > args.max_steps:
+        if 0 < args.max_steps < global_step:
             train_iterator.close()
             break
 
@@ -842,9 +842,7 @@ def main():
     parser.add_argument("--seed", type=int, default=42,
                         help="random seed for initialization")
 
-    parser.add_argument(
-        "--fp16",
-        action="store_true",
+    parser.add_argument("--fp16", action="store_true", default=True,
         help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit",
     )
     parser.add_argument(
