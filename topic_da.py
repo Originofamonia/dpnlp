@@ -1,4 +1,4 @@
-# Credit for The HuggingFace Inc. team.
+#
 
 import argparse
 import glob
@@ -754,10 +754,10 @@ def main():
                         help="Path to pre-trained model or shortcut name selected in the list: " + ", ".join(
                             ALL_MODELS),
                         )
-    parser.add_argument("--task_name", default='blog', type=str,
+    parser.add_argument("--task_name", default='ag', type=str,
                         help="The name of the task to train selected in the list: ",
                         )
-    parser.add_argument("--output_dir", default='blog', type=str,
+    parser.add_argument("--output_dir", default='ag', type=str,
                         help="The output directory where the model predictions and checkpoints will be written.",
                         )
 
