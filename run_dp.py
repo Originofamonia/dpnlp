@@ -832,7 +832,7 @@ def main():
     parser.add_argument("--no_cuda", action="store_true", default=False,
                         help="Avoid using CUDA when available")
     parser.add_argument(
-        "--overwrite_output_dir", action="store_true",
+        "--overwrite_output_dir", action="store_true", default=True,
         help="Overwrite the content of the output directory",
     )
     parser.add_argument(
