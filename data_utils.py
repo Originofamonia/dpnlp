@@ -35,6 +35,8 @@ class Data(object):
         dataset = [[], [], []]
         split = 0
         labels = set()
+        labels_count = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0,
+                        '7': 0, '8': 0, '9': 0}
 
         guid = 0
         with open(data_path) as f:
@@ -47,6 +49,7 @@ class Data(object):
                 label, text, meta = line.split("\t")
                 dataset[split].append(
                     Example(guid, text, label, meta.strip(), att))
+                labels_count[label] += 1
                 guid += 1
 
                 labels.add(label)
