@@ -31,14 +31,21 @@ class Example(object):
 class Data(object):
     def __init__(self, data_path, att=2):
 
+        if 'blog' in data_path:
+            dataset, labels = self.build_blog_dataset(att, data_path)
+        else:
+            dataset, labels = self.build_dataset(att, data_path)
+
+        self.label_list = list(labels)
+        self.dataset = dataset
+
+    def build_dataset(self, att, data_path):
         sep = "=" * 20
         dataset = [[], [], []]
         split = 0
         labels = set()
-        labels_count = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0,
-                        '7': 0, '8': 0, '9': 0}
-
         guid = 0
+
         with open(data_path) as f:
             for line in f:
                 line = line.lstrip()
@@ -49,13 +56,37 @@ class Data(object):
                 label, text, meta = line.split("\t")
                 dataset[split].append(
                     Example(guid, text, label, meta.strip(), att))
-                labels_count[label] += 1
                 guid += 1
 
                 labels.add(label)
+        return dataset, labels
 
-        self.label_list = list(labels)
-        self.dataset = dataset
+
+    def build_blog_dataset(self, att, data_path):
+        """
+        filter only 4 classes: 1, 2, 7, 9 to match ag to do DA
+        """
+        sep = "=" * 20
+        dataset = [[], [], []]
+        split = 0
+        labels = set()
+        guid = 0
+        with open(data_path) as f:
+            for line in f:
+                line = line.lstrip()
+                if line.strip() == sep:
+                    split += 1
+                    guid = 0
+                    continue
+                label, text, meta = line.split("\t")
+                if label in ['1', '2', '4', '9']:
+                    dataset[split].append(
+                        Example(guid, text, label, meta.strip(), att))
+                    # labels_count[label] += 1
+                    guid += 1
+                    labels.add(label)
+
+        return dataset, labels
 
     def get_labels(self):
         return self.label_list
