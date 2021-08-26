@@ -410,6 +410,7 @@ def main():
     if distributed and args.device == "cuda":
         args.device = "cuda:" + str(args.local_rank)
     device = torch.device(args.device)
+    print('device: ', device)
 
     model = convnet(num_classes=10)
     model = model.to(device)
