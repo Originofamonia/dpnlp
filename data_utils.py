@@ -82,7 +82,6 @@ class Data(object):
                 if label in ['1', '2', '4', '9']:
                     dataset[split].append(
                         Example(guid, text, label, meta.strip(), att))
-                    # labels_count[label] += 1
                     guid += 1
                     labels.add(label)
 
